@@ -1,126 +1,126 @@
-# AI Hot News Website Design
+# AI 热点新闻网站设计
 
-Date: 2026-06-10
+日期：2026-06-10
 
-## Goal
+## 目标
 
-Build and launch a website that aggregates AI hot news links with a semi-automated editorial workflow.
+构建并上线一个 AI 热点新闻链接聚合网站，采用半自动化的编辑工作流。
 
-The first version focuses on global AI product and model updates as the primary category, with AI tool recommendations as a secondary category. Public users read curated news. Administrators manage sources, fetch candidate links, review candidates, and publish selected items.
+第一版以全球 AI 产品和模型动态为主分类，以 AI 工具推荐为次分类。公开用户阅读精选新闻。管理员负责管理来源、抓取候选链接、审核候选内容，并发布选中的条目。
 
-## Decisions
+## 已确认决策
 
-- Framework: Next.js with App Router.
-- Deployment: Vercel.
-- Database: Neon Postgres, starting on the free plan.
-- ORM: Drizzle ORM.
-- Authentication: Auth.js / NextAuth with a Credentials provider for administrator login.
-- Content workflow: semi-automated aggregation with administrator review before publication.
-- Source management: administrators can add, edit, enable, and disable sources.
-- First content sources: RSS and Atom feeds first; simple page parsing may be added only for selected sources later.
+- 框架：使用 Next.js App Router。
+- 部署：使用 Vercel。
+- 数据库：使用 Neon Postgres，第一版从免费计划开始。
+- ORM：使用 Drizzle ORM。
+- 认证：使用 Auth.js / NextAuth 的 Credentials provider 实现管理员登录。
+- 内容工作流：半自动聚合，发布前由管理员审核。
+- 来源管理：管理员可以添加、编辑、启用和停用来源。
+- 第一版内容来源：优先支持 RSS 和 Atom feed；后续只针对少量指定来源补充简单页面解析。
 
-## Scope
+## 范围
 
-### In Scope
+### 第一版范围内
 
-- Public AI news website.
-- Administrator-only source management.
-- RSS/Atom candidate ingestion.
-- Candidate review and publication workflow.
-- Published article management.
-- Category and tag filtering.
-- Search over published articles.
-- Vercel deployment.
-- Neon database schema and migrations.
-- Manual fetch trigger in the admin interface.
-- Cron-compatible fetch endpoint protected by a secret.
+- 公开 AI 新闻网站。
+- 仅管理员可用的来源管理。
+- RSS/Atom 候选内容抓取。
+- 候选内容审核和发布工作流。
+- 已发布文章管理。
+- 分类和标签筛选。
+- 已发布文章搜索。
+- Vercel 部署。
+- Neon 数据库 schema 和迁移。
+- 管理后台手动触发抓取。
+- 由 secret 保护的 Cron 兼容抓取接口。
 
-### Out of Scope for Version 1
+### 第一版范围外
 
-- Public user accounts.
-- Visitor-submitted sources.
-- Fully automated publishing.
-- Complex web crawling.
-- AI-generated summaries as a required dependency.
-- Email newsletters.
-- Personalized feeds.
-- Paid subscriptions.
-- Real-time ranking.
+- 公开用户账号。
+- 访客提交来源。
+- 全自动发布。
+- 复杂网页爬虫。
+- 将 AI 生成摘要作为必需依赖。
+- 邮件 newsletter。
+- 个性化信息流。
+- 付费订阅。
+- 实时热榜。
 
-AI summaries and automatic tagging may be added later. Version 1 must work even when no AI API key is configured.
+AI 摘要和自动打标签可以后续加入。第一版必须在没有配置 AI API key 的情况下也能完整运行。
 
-## Product Structure
+## 产品结构
 
-### Public Site
+### 公开站点
 
-The public site presents selected AI news in a way that remains useful even when some original external links are difficult to access from mainland China.
+公开站点展示精选 AI 新闻。即使部分原文外链在中国大陆访问困难，站内内容也应保持可读和有价值。
 
-Pages:
+页面：
 
-- `/`: latest published articles, featured articles, and category entry points.
-- `/category/models`: global AI product and model updates.
-- `/category/tools`: AI tool recommendations.
-- `/sources`: active sources used by the site.
-- `/search`: keyword search over published articles.
-- `/article/[slug]`: article detail page with summary, source, original link, tags, category, and publication time.
+- `/`：最新已发布文章、精选文章和分类入口。
+- `/category/models`：全球 AI 产品和模型动态。
+- `/category/tools`：AI 工具推荐。
+- `/sources`：本站使用中的活跃来源。
+- `/search`：对已发布文章进行关键词搜索。
+- `/article/[slug]`：文章详情页，包含摘要、来源、原文链接、标签、分类和发布时间。
 
-Article cards show:
+文章卡片展示：
 
-- Title.
-- Short summary.
-- Source name.
-- Original link.
-- Published time.
-- Category.
-- Tags.
-- Featured state when applicable.
+- 标题。
+- 简短摘要。
+- 来源名称。
+- 原文链接。
+- 发布时间。
+- 分类。
+- 标签。
+- 精选状态，如果适用。
 
-### Administrator Area
+### 管理员区域
 
-The administrator area is protected by authentication and role checks.
+管理员区域由认证和权限检查保护。
 
-Pages:
+页面：
 
-- `/admin`: dashboard with source health, candidate count, recent publications, and recent fetch results.
-- `/admin/sources`: add, edit, enable, disable, and test sources.
-- `/admin/candidates`: review fetched candidate news; publish, ignore, or edit candidates.
-- `/admin/articles`: edit, unpublish, feature, or delete published articles.
-- `/admin/settings`: basic administrator and fetch settings.
+- `/admin`：后台概览，展示来源健康状态、候选数量、近期发布和最近抓取结果。
+- `/admin/sources`：添加、编辑、启用、停用和测试来源。
+- `/admin/candidates`：审核抓取到的候选新闻；支持发布、忽略或编辑候选项。
+- `/admin/articles`：编辑、下架、精选或删除已发布文章。
+- `/admin/settings`：基础管理员和抓取设置。
 
-Only the configured administrator can access these pages. Version 1 uses environment variables for a single administrator email and password hash.
+只有配置好的管理员可以访问这些页面。第一版使用环境变量保存单个管理员邮箱和密码哈希。
 
-## Architecture
+## 架构
 
-The application is a single Next.js project deployed to Vercel.
+应用是一个部署到 Vercel 的单体 Next.js 项目。
 
-Main components:
+主要组件：
 
-- Next.js App Router for public pages, admin pages, route handlers, and server actions.
-- Neon Postgres for persistent data.
-- Drizzle ORM for schema, migrations, and type-safe queries.
-- Auth.js / NextAuth for administrator authentication.
-- RSS/Atom ingestion service for fetching source feeds.
-- Vercel Cron-compatible route for scheduled fetching.
+- Next.js App Router：负责公开页面、后台页面、route handlers 和 server actions。
+- Neon Postgres：负责持久化数据。
+- Drizzle ORM：负责 schema、迁移和类型安全查询。
+- Auth.js / NextAuth：负责管理员认证。
+- RSS/Atom 抓取服务：负责抓取来源 feed。
+- Vercel Cron 兼容 route：负责定时抓取。
 
-Data flow:
+数据流：
 
-1. Administrator adds a source.
-2. Administrator manually triggers fetching, or Vercel Cron calls the fetch route.
-3. The ingestion service reads enabled sources.
-4. The service fetches RSS/Atom feeds.
-5. Feed items are normalized into candidate records.
-6. Candidate items are deduplicated by canonical URL hash.
-7. Administrator reviews candidates.
-8. Approved candidates become published articles.
-9. Public pages read only published articles.
+1. 管理员添加来源。
+2. 管理员手动触发抓取，或由 Vercel Cron 调用抓取 route。
+3. 抓取服务读取已启用来源。
+4. 服务抓取 RSS/Atom feed。
+5. Feed 条目被标准化为候选记录。
+6. 候选条目通过规范化 URL hash 去重。
+7. 管理员审核候选内容。
+8. 通过审核的候选内容转为已发布文章。
+9. 公开页面只读取已发布文章。
 
-## Data Model
+## 数据模型
 
 ### `sources`
 
-Stores administrator-managed news sources.
+保存管理员维护的新闻来源。
 
-Fields:
+字段：
 
 - `id`
 - `name`
@@ -136,9 +136,9 @@ Fields:
 
 ### `candidates`
 
-Stores fetched but unpublished news items.
+保存已抓取但尚未发布的新闻条目。
 
-Fields:
+字段：
 
 - `id`
 - `source_id`
@@ -153,19 +153,19 @@ Fields:
 - `created_at`
 - `updated_at`
 
-Candidate statuses:
+候选状态：
 
 - `new`
 - `published`
 - `ignored`
 
-The unique constraint is based on `canonical_url_hash`.
+唯一约束基于 `canonical_url_hash`。
 
 ### `articles`
 
-Stores published public articles.
+保存已发布的公开文章。
 
-Fields:
+字段：
 
 - `id`
 - `candidate_id`
@@ -181,76 +181,76 @@ Fields:
 - `created_at`
 - `updated_at`
 
-Article statuses:
+文章状态：
 
 - `published`
 - `draft`
 - `archived`
 
-Public pages show only `published` articles.
+公开页面只展示 `published` 状态的文章。
 
 ### `tags` and `article_tags`
 
-Stores reusable tags and the many-to-many relation between articles and tags.
+保存可复用标签，以及文章和标签之间的多对多关系。
 
-Version 1 can use normalized tag tables because filtering and search are part of the public experience.
+因为筛选和搜索是公开体验的一部分，第一版可以使用规范化的标签表。
 
-## Ingestion and Deduplication
+## 抓取和去重
 
-RSS/Atom is the primary ingestion method.
+RSS/Atom 是主要抓取方式。
 
-The ingestion service must:
+抓取服务必须：
 
-- Fetch only enabled sources.
-- Parse common RSS and Atom formats.
-- Normalize links, titles, summaries, and dates.
-- Continue processing other sources if one source fails.
-- Store per-source fetch status and error messages.
-- Deduplicate items by canonical URL hash.
+- 只抓取已启用来源。
+- 解析常见 RSS 和 Atom 格式。
+- 标准化链接、标题、摘要和日期。
+- 当某个来源失败时，继续处理其他来源。
+- 保存每个来源的抓取状态和错误信息。
+- 通过规范化 URL hash 对条目去重。
 
-Canonical URL normalization should:
+规范化 URL 的处理规则：
 
-- Trim whitespace.
-- Resolve redirects only if it can be done cheaply and safely.
-- Remove common tracking parameters such as `utm_*`.
-- Normalize the URL before hashing.
+- 去除首尾空白。
+- 只在成本低且安全的情况下解析重定向。
+- 移除 `utm_*` 等常见追踪参数。
+- 在 hash 前对 URL 进行标准化。
 
-Version 1 does not need title-similarity deduplication.
+第一版不需要基于标题相似度的去重。
 
-## Authentication and Authorization
+## 认证和授权
 
-Auth.js / NextAuth handles administrator sign-in with a Credentials provider and JWT sessions.
+Auth.js / NextAuth 使用 Credentials provider 和 JWT sessions 处理管理员登录。
 
-Authorization rules:
+授权规则：
 
-- Only the email configured in `ADMIN_EMAIL` can sign in.
-- The submitted password is checked against `ADMIN_PASSWORD_HASH`.
-- Admin pages check the server-side session.
-- Admin write actions check the server-side session.
-- Cron fetching uses `CRON_SECRET`.
-- Database credentials and secrets stay in Vercel environment variables.
+- 只有 `ADMIN_EMAIL` 中配置的邮箱可以登录。
+- 提交的密码会与 `ADMIN_PASSWORD_HASH` 校验。
+- 管理后台页面检查服务端 session。
+- 管理后台写操作检查服务端 session。
+- Cron 抓取使用 `CRON_SECRET`。
+- 数据库凭据和 secret 保存在 Vercel 环境变量中。
 
-The public site does not require authentication.
+公开站点不需要认证。
 
-Version 1 does not include public users or a database-backed user management system. Multi-admin support can be added later by moving administrator records into the database or switching to an OAuth provider.
+第一版不包含公开用户，也不包含数据库驱动的用户管理系统。后续可以通过把管理员记录迁移到数据库，或切换到 OAuth provider 来支持多管理员。
 
-## Error Handling
+## 错误处理
 
-Fetch failures should be visible to administrators without breaking the whole run.
+抓取失败需要对管理员可见，但不能中断整批抓取。
 
-Rules:
+规则：
 
-- A failed source does not stop other sources from being processed.
-- Each source stores the latest fetch status and error message.
-- Candidate creation errors are logged and surfaced in the admin fetch result.
-- The cron endpoint returns a summary of processed, created, skipped, and failed sources.
-- Public pages show a normal empty state if there are no published articles.
+- 某个来源失败不会阻止其他来源继续处理。
+- 每个来源保存最近一次抓取状态和错误信息。
+- 候选内容创建错误会被记录，并展示在后台抓取结果中。
+- Cron endpoint 返回已处理、已创建、已跳过和失败来源的汇总。
+- 如果没有已发布文章，公开页面展示正常空状态。
 
-## Deployment
+## 部署
 
-The project deploys to Vercel.
+项目部署到 Vercel。
 
-Required environment variables:
+必需环境变量：
 
 - `DATABASE_URL`
 - `AUTH_SECRET`
@@ -258,49 +258,49 @@ Required environment variables:
 - `ADMIN_PASSWORD_HASH`
 - `CRON_SECRET`
 
-Deployment steps:
+部署步骤：
 
-1. Create a Neon Postgres project.
-2. Add the Neon connection string to Vercel as `DATABASE_URL`.
-3. Configure Auth.js secret, administrator email, and administrator password hash.
-4. Run database migrations.
-5. Deploy the Next.js app to Vercel.
-6. Configure a custom domain.
-7. Configure Vercel Cron for the protected fetch route.
+1. 创建 Neon Postgres 项目。
+2. 将 Neon 连接串以 `DATABASE_URL` 的形式添加到 Vercel。
+3. 配置 Auth.js secret、管理员邮箱和管理员密码哈希。
+4. 运行数据库迁移。
+5. 将 Next.js 应用部署到 Vercel。
+6. 配置自定义域名。
+7. 为受保护的抓取 route 配置 Vercel Cron。
 
-Neon Free is acceptable for version 1. Upgrade when storage approaches the free limit, CU-hour usage regularly approaches the free limit, traffic becomes consistently public, or stronger production guarantees are needed.
+Neon Free 适合第一版使用。当存储接近免费额度、CU-hour 使用量经常接近免费额度、公开访问量稳定增长，或需要更强生产保障时再升级。
 
-## Testing
+## 测试
 
-Version 1 tests focus on the core editorial loop.
+第一版测试重点覆盖核心编辑闭环。
 
-Required coverage:
+必需覆盖：
 
-- RSS/Atom parser handles common valid feeds.
-- Missing feed fields do not crash ingestion.
-- URL canonicalization deduplicates repeated links.
-- Non-admin users cannot access admin routes or write actions.
-- Candidate publishing creates a public article.
-- Public article queries only return published articles.
-- A failed source does not stop ingestion for other sources.
+- RSS/Atom 解析器可以处理常见有效 feed。
+- feed 字段缺失时抓取流程不会崩溃。
+- URL 规范化可以对重复链接去重。
+- 非管理员不能访问后台 route 或写操作。
+- 候选内容发布后可以创建公开文章。
+- 公开文章查询只返回已发布文章。
+- 某个来源失败不会阻止其他来源继续抓取。
 
-Manual verification:
+手动验证：
 
-- Add a source.
-- Trigger fetch.
-- Review candidates.
-- Publish an article.
-- Confirm the article appears on the public site.
-- Confirm ignored candidates stay hidden.
+- 添加来源。
+- 触发抓取。
+- 审核候选内容。
+- 发布一篇文章。
+- 确认文章出现在公开站点。
+- 确认被忽略的候选内容保持隐藏。
 
-## Future Enhancements
+## 后续增强
 
-- AI-generated summaries.
-- AI tag suggestions.
-- Visitor source submissions with moderation.
-- Newsletter digest.
-- Trending score.
-- Multi-language summaries.
-- More advanced deduplication using title similarity.
-- Source reliability scoring.
-- Cloudflare or mainland China hosting strategy if domestic access becomes a hard requirement.
+- AI 生成摘要。
+- AI 标签建议。
+- 带审核的访客来源提交。
+- Newsletter 摘要。
+- 热度评分。
+- 多语言摘要。
+- 使用标题相似度的更高级去重。
+- 来源可靠性评分。
+- 如果中国大陆访问成为硬性要求，增加 Cloudflare 或中国大陆托管策略。
