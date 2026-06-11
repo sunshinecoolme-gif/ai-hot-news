@@ -4,5 +4,4 @@ out
 coverage
 .env
 .env*.local
-drizzle/meta
 .superpowers
