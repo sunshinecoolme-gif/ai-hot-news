@@ -35,10 +35,15 @@ export function ArticleCard({ article }: { article: PublicArticle }) {
       <p className="mt-3 text-sm leading-6 text-neutral-700">{article.summary}</p>
 
       <div className="mt-4 flex flex-wrap items-center gap-3 text-sm">
-        <Link className="font-medium text-signal hover:text-blue-800" href={`/article/${article.slug}`}>
+        <Link
+          aria-label={`阅读详情：${article.title}`}
+          className="font-medium text-signal hover:text-blue-800"
+          href={`/article/${article.slug}`}
+        >
           阅读详情
         </Link>
         <a
+          aria-label={`打开原文：${article.title}`}
           className="text-neutral-600 hover:text-ink"
           href={article.url}
           rel="noreferrer"

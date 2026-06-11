@@ -22,12 +22,14 @@ const publicArticleColumns = {
   }
 };
 
+const publishedFromEnabledSource = and(eq(articles.status, "published"), eq(sources.enabled, true));
+
 export async function listPublishedArticles(limit = 30) {
   return db
     .select(publicArticleColumns)
     .from(articles)
     .innerJoin(sources, eq(articles.sourceId, sources.id))
-    .where(eq(articles.status, "published"))
+    .where(publishedFromEnabledSource)
     .orderBy(desc(articles.publishedAt))
     .limit(limit);
 }
@@ -37,8 +39,9 @@ export async function listPublishedArticlesByCategory(category: "models" | "tool
     .select(publicArticleColumns)
     .from(articles)
     .innerJoin(sources, eq(articles.sourceId, sources.id))
-    .where(and(eq(articles.status, "published"), eq(articles.category, category)))
-    .orderBy(desc(articles.publishedAt));
+    .where(and(publishedFromEnabledSource, eq(articles.category, category)))
+    .orderBy(desc(articles.publishedAt))
+    .limit(50);
 }
 
 export async function searchPublishedArticles(query: string) {
@@ -54,11 +57,12 @@ export async function searchPublishedArticles(query: string) {
     .innerJoin(sources, eq(articles.sourceId, sources.id))
     .where(
       and(
-        eq(articles.status, "published"),
+        publishedFromEnabledSource,
         or(ilike(articles.title, `%${term}%`), ilike(articles.summary, `%${term}%`))
       )
     )
-    .orderBy(desc(articles.publishedAt));
+    .orderBy(desc(articles.publishedAt))
+    .limit(50);
 }
 
 export async function getPublishedArticleBySlug(slug: string) {
@@ -66,7 +70,7 @@ export async function getPublishedArticleBySlug(slug: string) {
     .select(publicArticleColumns)
     .from(articles)
     .innerJoin(sources, eq(articles.sourceId, sources.id))
-    .where(and(eq(articles.status, "published"), eq(articles.slug, slug)))
+    .where(and(publishedFromEnabledSource, eq(articles.slug, slug)))
     .limit(1);
 
   return article ?? null;
