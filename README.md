@@ -32,6 +32,8 @@ AI Hot News is a semi-automated AI news aggregation website focused on global AI
    printf '%s' 'your-password' | npm run admin:password
    ```
 
+   If you paste the hash into `.env.local`, escape each `$` as `\$` because Next.js expands `$VARIABLE` references in env files. Vercel environment variables should use the hash as generated.
+
 4. Fill `.env.local` with the Neon connection string, Auth.js secret, administrator email, password hash, and cron secret.
 
 5. Run database migrations:
