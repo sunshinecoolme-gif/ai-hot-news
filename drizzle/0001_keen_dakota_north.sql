@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX IF NOT EXISTS "articles_candidate_id_idx" ON "articles" USING btree ("candidate_id");

@@ -82,6 +82,7 @@ export const articles = pgTable(
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
   },
   (table) => ({
+    candidateIdx: uniqueIndex("articles_candidate_id_idx").on(table.candidateId),
     slugIdx: uniqueIndex("articles_slug_idx").on(table.slug),
     statusPublishedIdx: index("articles_status_published_at_idx").on(table.status, table.publishedAt)
   })

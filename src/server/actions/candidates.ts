@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { db } from "@/db/client";
 import { candidates } from "@/db/schema";
+import { createSlug } from "@/lib/slug";
 
 const publishCandidateSchema = z.object({
   candidateId: z.string().uuid(),
@@ -32,12 +33,18 @@ export function parsePublishCandidateForm(formData: FormData) {
   const tags =
     typeof tagsValue === "string"
       ? Array.from(
-          new Set(
-            tagsValue
-              .split(",")
-              .map((tag) => tag.trim())
-              .filter(Boolean)
-          )
+          tagsValue
+            .split(",")
+            .map((tag) => tag.trim())
+            .filter(Boolean)
+            .reduce((deduped, tag) => {
+              const slug = createSlug(tag);
+              if (!deduped.has(slug)) {
+                deduped.set(slug, tag);
+              }
+              return deduped;
+            }, new Map<string, string>())
+            .values()
         )
       : [];
 
@@ -62,6 +69,10 @@ export async function publishCandidateAction(formData: FormData) {
 
   if (!candidate) {
     throw new Error("Candidate not found");
+  }
+
+  if (candidate.status !== "new") {
+    throw new Error("Candidate is not publishable");
   }
 
   await publishCandidate({

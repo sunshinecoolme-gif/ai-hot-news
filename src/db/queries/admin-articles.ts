@@ -1,4 +1,4 @@
-import { desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import { db } from "@/db/client";
 import { articleTags, articles, candidates, tags } from "@/db/schema";
 import { createSlug } from "@/lib/slug";
@@ -20,12 +20,25 @@ export type PublishCandidateInput = {
 
 export async function publishCandidate(input: PublishCandidateInput) {
   return db.transaction(async (tx) => {
+    const [claimedCandidate] = await tx
+      .update(candidates)
+      .set({
+        status: "published",
+        updatedAt: new Date()
+      })
+      .where(and(eq(candidates.id, input.candidateId), eq(candidates.status, "new")))
+      .returning({ id: candidates.id });
+
+    if (!claimedCandidate) {
+      throw new Error("Candidate is not publishable");
+    }
+
     const [article] = await tx
       .insert(articles)
       .values({
         candidateId: input.candidateId,
         sourceId: input.sourceId,
-        slug: `${createSlug(input.title)}-${Date.now()}`,
+        slug: `${createSlug(input.title)}-${input.candidateId.slice(0, 8)}`,
         title: input.title,
         summary: input.summary,
         url: input.url,
@@ -34,10 +47,17 @@ export async function publishCandidate(input: PublishCandidateInput) {
       })
       .returning();
 
-    const tagValues = input.tags.map((name) => ({
-      name,
-      slug: createSlug(name)
-    }));
+    const tagValues = Array.from(
+      input.tags
+        .reduce((deduped, name) => {
+          const slug = createSlug(name);
+          if (!deduped.has(slug)) {
+            deduped.set(slug, { name, slug });
+          }
+          return deduped;
+        }, new Map<string, { name: string; slug: string }>())
+        .values()
+    );
 
     if (tagValues.length > 0) {
       const upsertedTags = await tx
@@ -56,14 +76,6 @@ export async function publishCandidate(input: PublishCandidateInput) {
         .values(upsertedTags.map((tag) => ({ articleId: article.id, tagId: tag.id })))
         .onConflictDoNothing();
     }
-
-    await tx
-      .update(candidates)
-      .set({
-        status: "published",
-        updatedAt: new Date()
-      })
-      .where(eq(candidates.id, input.candidateId));
 
     return article;
   });

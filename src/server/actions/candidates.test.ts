@@ -20,4 +20,15 @@ describe("parsePublishCandidateForm", () => {
       featured: true
     });
   });
+
+  it("deduplicates tags by normalized slug", () => {
+    const form = new FormData();
+    form.set("candidateId", "2d7e5d38-3c6e-4a96-b59d-4ad26325fef7");
+    form.set("title", "GPT-5 ships new coding features");
+    form.set("summary", "OpenAI released a practical set of model updates for developers.");
+    form.set("category", "models");
+    form.set("tags", "OpenAI, openai, !!!, ???");
+
+    expect(parsePublishCandidateForm(form).tags).toEqual(["OpenAI", "!!!"]);
+  });
 });
