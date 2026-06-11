@@ -25,4 +25,16 @@ describe("parseEnv", () => {
       })
     ).toThrow();
   });
+
+  it("rejects non-bcrypt administrator password hashes", () => {
+    expect(() =>
+      parseEnv({
+        DATABASE_URL: "postgres://user:pass@example.com/db?sslmode=require",
+        AUTH_SECRET: "test-auth-secret-with-enough-length",
+        ADMIN_EMAIL: "admin@example.com",
+        ADMIN_PASSWORD_HASH: "replace-with-bcrypt-hash",
+        CRON_SECRET: "test-cron-secret-with-enough-length"
+      })
+    ).toThrow("ADMIN_PASSWORD_HASH must be a bcrypt hash");
+  });
 });
