@@ -18,6 +18,7 @@ export async function verifyAdminPassword(password: string, passwordHash: string
 }
 
 export const authConfig = {
+  trustHost: true,
   secret: env.AUTH_SECRET,
   session: {
     strategy: "jwt"
