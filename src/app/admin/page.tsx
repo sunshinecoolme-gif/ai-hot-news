@@ -3,8 +3,7 @@ import Link from "next/link";
 const adminLinks = [
   { href: "/admin/sources", label: "来源管理", description: "添加 RSS/Atom 来源并触发抓取。" },
   { href: "/admin/candidates", label: "候选审核", description: "审核抓取到的候选新闻。" },
-  { href: "/admin/articles", label: "文章管理", description: "管理已发布和草稿文章。" },
-  { href: "/admin/settings", label: "设置", description: "调整站点和后台配置。" }
+  { href: "/admin/articles", label: "文章管理", description: "管理已发布和草稿文章。" }
 ];
 
 export default function AdminPage() {
@@ -15,7 +14,7 @@ export default function AdminPage() {
         <h1 className="mt-3 text-3xl font-semibold text-ink">管理后台</h1>
       </header>
 
-      <nav className="grid gap-3 md:grid-cols-4">
+      <nav className="grid gap-3 md:grid-cols-3">
         {adminLinks.map((link) => (
           <Link
             className="rounded-md border border-line bg-white p-4 transition hover:border-mint"

@@ -1,5 +1,5 @@
 import { listAdminSources } from "@/db/queries/admin-sources";
-import { createSourceAction, fetchSourcesAction } from "@/server/actions/sources";
+import { createSourceAction, fetchSourcesAction, setSourceEnabledAction } from "@/server/actions/sources";
 
 export const dynamic = "force-dynamic";
 
@@ -83,7 +83,17 @@ export default async function AdminSourcesPage() {
                   <p className="mt-1 break-all text-sm text-neutral-600">{source.feedUrl}</p>
                   <p className="mt-1 text-sm text-neutral-500">状态：{source.lastFetchStatus}</p>
                 </div>
-                <span className="text-sm font-medium text-ink">{source.enabled ? "启用" : "停用"}</span>
+                <form action={setSourceEnabledAction} className="flex shrink-0 items-center gap-3">
+                  <input name="sourceId" type="hidden" value={source.id} />
+                  <input name="enabled" type="hidden" value={source.enabled ? "false" : "true"} />
+                  <span className="text-sm font-medium text-ink">{source.enabled ? "启用" : "停用"}</span>
+                  <button
+                    className="rounded-md border border-line px-3 py-2 text-sm font-semibold text-ink transition hover:border-mint"
+                    type="submit"
+                  >
+                    {source.enabled ? "停用" : "启用"}
+                  </button>
+                </form>
               </div>
             </article>
           ))

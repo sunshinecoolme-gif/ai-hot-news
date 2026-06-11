@@ -9,6 +9,11 @@ const sourceSchema = z.object({
   enabled: z.boolean()
 });
 
+const sourceEnabledSchema = z.object({
+  sourceId: z.string().uuid(),
+  enabled: z.boolean()
+});
+
 async function requireAdmin() {
   const { isAllowedAdmin } = await import("@/lib/admin");
   const { auth } = await import("@/lib/auth");
@@ -28,6 +33,13 @@ export function parseSourceForm(formData: FormData) {
     feedUrl: formData.get("feedUrl"),
     category: formData.get("category"),
     enabled: formData.get("enabled") === "on"
+  });
+}
+
+export function parseSourceEnabledForm(formData: FormData) {
+  return sourceEnabledSchema.parse({
+    sourceId: formData.get("sourceId"),
+    enabled: formData.get("enabled") === "true"
   });
 }
 
@@ -57,4 +69,18 @@ export async function fetchSourcesAction() {
   revalidatePath("/admin/sources");
 
   return result;
+}
+
+export async function setSourceEnabledAction(formData: FormData) {
+  "use server";
+
+  await requireAdmin();
+
+  const { setSourceEnabled } = await import("@/db/queries/admin-sources");
+  const input = parseSourceEnabledForm(formData);
+  await setSourceEnabled(input.sourceId, input.enabled);
+
+  revalidatePath("/admin/sources");
+  revalidatePath("/sources");
+  revalidatePath("/");
 }

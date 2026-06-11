@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseSourceForm } from "./sources";
+import { parseSourceEnabledForm, parseSourceForm } from "./sources";
 
 describe("parseSourceForm", () => {
   it("parses a valid source form", () => {
@@ -25,5 +25,26 @@ describe("parseSourceForm", () => {
     form.set("category", "other");
 
     expect(() => parseSourceForm(form)).toThrow();
+  });
+});
+
+describe("parseSourceEnabledForm", () => {
+  it("parses a source enabled toggle form", () => {
+    const form = new FormData();
+    form.set("sourceId", "2d7e5d38-3c6e-4a96-b59d-4ad26325fef7");
+    form.set("enabled", "false");
+
+    expect(parseSourceEnabledForm(form)).toEqual({
+      sourceId: "2d7e5d38-3c6e-4a96-b59d-4ad26325fef7",
+      enabled: false
+    });
+  });
+
+  it("rejects an invalid source id", () => {
+    const form = new FormData();
+    form.set("sourceId", "not-a-uuid");
+    form.set("enabled", "true");
+
+    expect(() => parseSourceEnabledForm(form)).toThrow();
   });
 });

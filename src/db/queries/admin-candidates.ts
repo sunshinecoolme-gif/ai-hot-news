@@ -1,4 +1,4 @@
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/db/client";
 import { candidates, sources } from "@/db/schema";
 
@@ -21,5 +21,5 @@ export async function markCandidateIgnored(id: string) {
       status: "ignored",
       updatedAt: new Date()
     })
-    .where(eq(candidates.id, id));
+    .where(and(eq(candidates.id, id), eq(candidates.status, "new")));
 }
