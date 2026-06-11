@@ -2,6 +2,7 @@ import bcrypt from "bcryptjs";
 import NextAuth, { type NextAuthConfig } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { z } from "zod";
+import { baseAuthConfig } from "./auth.config";
 import { env } from "./env";
 
 export const credentialsSchema = z.object({
@@ -18,14 +19,7 @@ export async function verifyAdminPassword(password: string, passwordHash: string
 }
 
 export const authConfig = {
-  trustHost: true,
-  secret: env.AUTH_SECRET,
-  session: {
-    strategy: "jwt"
-  },
-  pages: {
-    signIn: "/admin/login"
-  },
+  ...baseAuthConfig,
   providers: [
     Credentials({
       credentials: {
@@ -57,22 +51,7 @@ export const authConfig = {
         };
       }
     })
-  ],
-  callbacks: {
-    authorized({ auth, request }) {
-      const { pathname } = request.nextUrl;
-
-      if (pathname === "/admin/login") {
-        return true;
-      }
-
-      if (pathname.startsWith("/admin")) {
-        return Boolean(auth?.user);
-      }
-
-      return true;
-    }
-  }
+  ]
 } satisfies NextAuthConfig;
 
 export const { handlers, auth, signIn, signOut } = NextAuth(authConfig);
