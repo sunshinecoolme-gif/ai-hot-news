@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
-import { ingestSources, type CandidateInput, type IngestDb, type SourceForIngest } from "./fetch-sources";
+import { describe, expect, it, vi } from "vitest";
+import { defaultFetchText, ingestSources, type CandidateInput, type IngestDb, type SourceForIngest } from "./fetch-sources";
 
 function rssItem(title: string, url: string) {
   return `<?xml version="1.0" encoding="UTF-8" ?>
@@ -11,6 +11,23 @@ function rssItem(title: string, url: string) {
           <description>Summary for ${title}</description>
           <pubDate>Wed, 10 Jun 2026 08:00:00 GMT</pubDate>
         </item>
+      </channel>
+    </rss>`;
+}
+
+function rssItems(items: Array<{ title: string; url: string }>) {
+  return `<?xml version="1.0" encoding="UTF-8" ?>
+    <rss version="2.0">
+      <channel>
+        ${items
+          .map(
+            (item) => `<item>
+              <title>${item.title}</title>
+              <link>${item.url}</link>
+              <description>Summary for ${item.title}</description>
+            </item>`
+          )
+          .join("")}
       </channel>
     </rss>`;
 }
@@ -96,5 +113,59 @@ describe("ingestSources", () => {
     });
     expect(successes).toEqual(["good-source"]);
     expect(failures).toEqual([{ sourceId: "bad-source", error: "upstream unavailable" }]);
+  });
+
+  it("continues processing later items when one candidate insert fails", async () => {
+    const source: SourceForIngest = {
+      id: "source-1",
+      feedUrl: "https://example.com/feed.xml"
+    };
+    const { db, candidates, successes, failures } = fakeDb([source]);
+    let createCalls = 0;
+    db.createCandidateIfNew = vi.fn(async (candidate) => {
+      createCalls += 1;
+      if (createCalls === 2) {
+        throw new Error("duplicate payload too large");
+      }
+      candidates.push(candidate);
+      return true;
+    });
+
+    const result = await ingestSources({
+      db,
+      async fetchText() {
+        return rssItems([
+          { title: "First item", url: "https://example.com/first" },
+          { title: "Broken item", url: "https://example.com/broken" },
+          { title: "Third item", url: "https://example.com/third" }
+        ]);
+      }
+    });
+
+    expect(result).toEqual({ processed: 1, created: 2, skipped: 1, failed: 0 });
+    expect(candidates.map((candidate) => candidate.title)).toEqual(["First item", "Third item"]);
+    expect(successes).toEqual(["source-1"]);
+    expect(failures).toEqual([]);
+  });
+});
+
+describe("defaultFetchText", () => {
+  it("passes an abort signal to fetch", async () => {
+    const originalFetch = globalThis.fetch;
+    const fetchMock = vi.fn(async () => new Response("ok", { status: 200 }));
+    globalThis.fetch = fetchMock;
+
+    try {
+      await defaultFetchText("https://example.com/feed.xml");
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://example.com/feed.xml",
+      expect.objectContaining({
+        signal: expect.any(AbortSignal)
+      })
+    );
   });
 });

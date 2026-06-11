@@ -34,19 +34,29 @@ export type IngestResult = {
   failed: number;
 };
 
-export async function defaultFetchText(url: string): Promise<string> {
-  const response = await fetch(url, {
-    headers: {
-      "user-agent": "AIHotNewsBot/0.1 (+https://example.com)"
-    },
-    next: { revalidate: 0 }
-  } as RequestInit & { next: { revalidate: number } });
+const DEFAULT_FETCH_TIMEOUT_MS = 15_000;
 
-  if (!response.ok) {
-    throw new Error(`Fetch failed with ${response.status}`);
+export async function defaultFetchText(url: string, timeoutMs = DEFAULT_FETCH_TIMEOUT_MS): Promise<string> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const response = await fetch(url, {
+      headers: {
+        "user-agent": "AIHotNewsBot/0.1 (+https://example.com)"
+      },
+      signal: controller.signal,
+      next: { revalidate: 0 }
+    } as RequestInit & { next: { revalidate: number } });
+
+    if (!response.ok) {
+      throw new Error(`Fetch failed with ${response.status}`);
+    }
+
+    return response.text();
+  } finally {
+    clearTimeout(timeout);
   }
-
-  return response.text();
 }
 
 export function errorMessage(error: unknown): string {
@@ -79,21 +89,25 @@ export async function ingestSources({
       const items = parseFeed(xml);
 
       for (const item of items) {
-        const canonicalUrl = canonicalizeUrl(item.url);
-        const created = await db.createCandidateIfNew({
-          sourceId: source.id,
-          title: item.title,
-          url: item.url,
-          canonicalUrl,
-          canonicalUrlHash: hashCanonicalUrl(canonicalUrl),
-          summary: item.summary,
-          publishedAt: item.publishedAt,
-          rawPayload: item.raw
-        });
+        try {
+          const canonicalUrl = canonicalizeUrl(item.url);
+          const created = await db.createCandidateIfNew({
+            sourceId: source.id,
+            title: item.title,
+            url: item.url,
+            canonicalUrl,
+            canonicalUrlHash: hashCanonicalUrl(canonicalUrl),
+            summary: item.summary,
+            publishedAt: item.publishedAt,
+            rawPayload: item.raw
+          });
 
-        if (created) {
-          result.created += 1;
-        } else {
+          if (created) {
+            result.created += 1;
+          } else {
+            result.skipped += 1;
+          }
+        } catch {
           result.skipped += 1;
         }
       }
