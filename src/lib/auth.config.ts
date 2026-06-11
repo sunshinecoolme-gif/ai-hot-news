@@ -1,4 +1,5 @@
 import type { NextAuthConfig } from "next-auth";
+import { isAllowedAdmin } from "./admin";
 import { env } from "./env";
 
 export const baseAuthConfig = {
@@ -20,7 +21,8 @@ export const baseAuthConfig = {
       }
 
       if (pathname.startsWith("/admin")) {
-        return Boolean(auth?.user);
+        const email = auth?.user?.email;
+        return Boolean(email && isAllowedAdmin(email, env.ADMIN_EMAIL));
       }
 
       return true;

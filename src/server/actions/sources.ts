@@ -10,10 +10,13 @@ const sourceSchema = z.object({
 });
 
 async function requireAdmin() {
+  const { isAllowedAdmin } = await import("@/lib/admin");
   const { auth } = await import("@/lib/auth");
+  const { env } = await import("@/lib/env");
   const session = await auth();
+  const email = session?.user?.email;
 
-  if (!session?.user?.email) {
+  if (!email || !isAllowedAdmin(email, env.ADMIN_EMAIL)) {
     throw new Error("Unauthorized");
   }
 }

@@ -2,6 +2,7 @@ import bcrypt from "bcryptjs";
 import NextAuth, { type NextAuthConfig } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { z } from "zod";
+import { isAllowedAdmin } from "./admin";
 import { baseAuthConfig } from "./auth.config";
 import { env } from "./env";
 
@@ -9,10 +10,6 @@ export const credentialsSchema = z.object({
   email: z.string().email(),
   password: z.string().min(1)
 });
-
-export function isAllowedAdmin(email: string, adminEmail: string): boolean {
-  return email.trim().toLowerCase() === adminEmail.trim().toLowerCase();
-}
 
 export async function verifyAdminPassword(password: string, passwordHash: string): Promise<boolean> {
   return bcrypt.compare(password, passwordHash);

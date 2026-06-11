@@ -1,6 +1,7 @@
 import bcrypt from "bcryptjs";
 import { describe, expect, it, vi } from "vitest";
-import { isAllowedAdmin, verifyAdminPassword } from "./auth";
+import { isAllowedAdmin } from "./admin";
+import { verifyAdminPassword } from "./auth";
 
 vi.mock("next-auth", () => ({
   default: vi.fn(() => ({
