@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>AI Updates</title>
+  <entry>
+    <title>Tool launch</title>
+    <link href="https://example.com/tools/launch?utm_campaign=feed" />
+    <summary>A practical AI tool launch.</summary>
+    <updated>2026-06-10T09:30:00Z</updated>
+  </entry>
+</feed>
