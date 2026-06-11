@@ -81,6 +81,7 @@ export async function setSourceEnabledAction(formData: FormData) {
   await setSourceEnabled(input.sourceId, input.enabled);
 
   revalidatePath("/admin/sources");
+  revalidatePath("/admin/candidates");
   revalidatePath("/sources");
   revalidatePath("/");
 }

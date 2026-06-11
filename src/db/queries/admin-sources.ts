@@ -1,6 +1,6 @@
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/db/client";
-import { sources } from "@/db/schema";
+import { candidates, sources } from "@/db/schema";
 
 export async function listAdminSources() {
   return db.select().from(sources).orderBy(desc(sources.createdAt));
@@ -18,11 +18,23 @@ export async function createSource(input: {
 }
 
 export async function setSourceEnabled(id: string, enabled: boolean) {
+  const now = new Date();
+
   await db
     .update(sources)
     .set({
       enabled,
-      updatedAt: new Date()
+      updatedAt: now
     })
     .where(eq(sources.id, id));
+
+  if (!enabled) {
+    await db
+      .update(candidates)
+      .set({
+        status: "ignored",
+        updatedAt: now
+      })
+      .where(and(eq(candidates.sourceId, id), eq(candidates.status, "new")));
+  }
 }
