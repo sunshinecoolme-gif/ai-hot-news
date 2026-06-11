@@ -28,6 +28,54 @@ function text(value: unknown): string | null {
   return null;
 }
 
+function decodeHtmlEntities(value: string): string {
+  const namedEntities: Record<string, string> = {
+    amp: "&",
+    apos: "'",
+    gt: ">",
+    hellip: "...",
+    lt: "<",
+    nbsp: " ",
+    quot: "\"",
+    rsquo: "'",
+    lsquo: "'",
+    rdquo: "\"",
+    ldquo: "\""
+  };
+
+  return value.replace(/&(#x[0-9a-f]+|#\d+|[a-z]+);/gi, (entity, token: string) => {
+    const normalized = token.toLowerCase();
+
+    if (normalized.startsWith("#x")) {
+      return String.fromCodePoint(Number.parseInt(normalized.slice(2), 16));
+    }
+
+    if (normalized.startsWith("#")) {
+      return String.fromCodePoint(Number.parseInt(normalized.slice(1), 10));
+    }
+
+    return namedEntities[normalized] ?? entity;
+  });
+}
+
+function normalizeFeedText(value: unknown): string | null {
+  const raw = text(value);
+  if (!raw) return null;
+
+  const normalized = decodeHtmlEntities(raw)
+    .replace(/[\u2018\u2019]/g, "'")
+    .replace(/[\u201c\u201d]/g, "\"")
+    .replace(/\u2026/g, "...")
+    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\bThe post\b[\s\S]*?\bappeared first on\b[\s\S]*$/i, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  return normalized || null;
+}
+
 function parseDate(value: unknown): Date | null {
   const raw = text(value);
   if (!raw) return null;
@@ -82,9 +130,9 @@ function parseRssItem(item: unknown): ParsedFeedItem[] {
 
   return [
     {
-      title,
+      title: normalizeFeedText(item.title) ?? title,
       url,
-      summary: text(item.description),
+      summary: normalizeFeedText(item.description),
       publishedAt: parseDate(item.pubDate),
       raw: item
     }
@@ -111,9 +159,9 @@ export function parseFeed(xml: string): ParsedFeedItem[] {
       if (!title || !url || !isHttpUrl(url)) return [];
       return [
         {
-          title,
+          title: normalizeFeedText(entry.title) ?? title,
           url,
-          summary: text(entry.summary) ?? text(entry.content),
+          summary: normalizeFeedText(entry.summary) ?? normalizeFeedText(entry.content),
           publishedAt: parseDate(entry.updated) ?? parseDate(entry.published),
           raw: entry
         }

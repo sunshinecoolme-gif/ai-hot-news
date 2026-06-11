@@ -68,4 +68,26 @@ describe("parseFeed", () => {
 
     expect(items).toEqual([]);
   });
+
+  it("normalizes HTML descriptions and decodes entities", () => {
+    const items = parseFeed(`<?xml version="1.0" encoding="UTF-8" ?>
+      <rss version="2.0">
+        <channel>
+          <item>
+            <title>Walmart&#8217;s AI workflows meet the realities of the balance sheet</title>
+            <link>https://www.artificialintelligence-news.com/news/walmart-limits-ai-use-as-workflows-meet-the-realities-of-the-balance-sheet/</link>
+            <description><![CDATA[
+              <p>Walmart has reportedly begun limiting employees&#8217; use of an internal AI assistant called Code Puppy after demands placed on the LLM backing the tool were higher than expected. Employees of Walmart were encouraged to use Code Puppy without any stricture or stipulations as to the limits of use, but Walmart is now assigning employees a [&#8230;]</p>
+              <p>The post <a href="https://www.artificialintelligence-news.com/news/walmart-limits-ai-use-as-workflows-meet-the-realities-of-the-balance-sheet/">Walmart&#8217;s AI workflows meet the realities of the balance sheet</a> appeared first on <a href="https://www.artificialintelligence-news.com">AI News</a>.</p>
+            ]]></description>
+          </item>
+        </channel>
+      </rss>`);
+
+    expect(items).toHaveLength(1);
+    expect(items[0].title).toBe("Walmart's AI workflows meet the realities of the balance sheet");
+    expect(items[0].summary).toBe(
+      "Walmart has reportedly begun limiting employees' use of an internal AI assistant called Code Puppy after demands placed on the LLM backing the tool were higher than expected. Employees of Walmart were encouraged to use Code Puppy without any stricture or stipulations as to the limits of use, but Walmart is now assigning employees a [...]"
+    );
+  });
 });
