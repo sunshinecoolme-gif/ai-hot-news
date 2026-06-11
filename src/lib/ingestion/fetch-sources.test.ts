@@ -168,4 +168,25 @@ describe("defaultFetchText", () => {
       })
     );
   });
+
+  it("uses a browser-compatible user agent for feeds that reject bare bots", async () => {
+    const originalFetch = globalThis.fetch;
+    const fetchMock = vi.fn(async () => new Response("ok", { status: 200 }));
+    globalThis.fetch = fetchMock;
+
+    try {
+      await defaultFetchText("https://example.com/feed.xml");
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://example.com/feed.xml",
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          "user-agent": expect.stringContaining("Mozilla/5.0")
+        })
+      })
+    );
+  });
 });

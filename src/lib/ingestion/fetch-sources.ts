@@ -43,7 +43,7 @@ export async function defaultFetchText(url: string, timeoutMs = DEFAULT_FETCH_TI
   try {
     const response = await fetch(url, {
       headers: {
-        "user-agent": "AIHotNewsBot/0.1 (+https://example.com)"
+        "user-agent": "Mozilla/5.0 (compatible; AIHotNewsBot/0.1; +https://ai-hot-news-liard.vercel.app)"
       },
       signal: controller.signal,
       next: { revalidate: 0 }
