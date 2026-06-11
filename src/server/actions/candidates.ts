@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { db } from "@/db/client";
 import { candidates } from "@/db/schema";
+import { normalizeFeedText } from "@/lib/ingestion/feed-parser";
 import { createSlug } from "@/lib/slug";
 
 const publishCandidateSchema = z.object({
@@ -50,8 +51,8 @@ export function parsePublishCandidateForm(formData: FormData) {
 
   return publishCandidateSchema.parse({
     candidateId: formData.get("candidateId"),
-    title: formData.get("title"),
-    summary: formData.get("summary"),
+    title: normalizeFeedText(formData.get("title")),
+    summary: normalizeFeedText(formData.get("summary")),
     category: formData.get("category"),
     tags,
     featured: formData.get("featured") === "on"

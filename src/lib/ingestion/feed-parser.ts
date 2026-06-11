@@ -58,7 +58,7 @@ function decodeHtmlEntities(value: string): string {
   });
 }
 
-function normalizeFeedText(value: unknown): string | null {
+export function normalizeFeedText(value: unknown): string | null {
   const raw = text(value);
   if (!raw) return null;
 

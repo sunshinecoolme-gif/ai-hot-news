@@ -31,4 +31,17 @@ describe("parsePublishCandidateForm", () => {
 
     expect(parsePublishCandidateForm(form).tags).toEqual(["OpenAI", "!!!"]);
   });
+
+  it("normalizes HTML and entities before publishing", () => {
+    const form = new FormData();
+    form.set("candidateId", "2d7e5d38-3c6e-4a96-b59d-4ad26325fef7");
+    form.set("title", "Scout from M&#8217;Soft");
+    form.set("summary", "<p>Microsoft&#8217;s agentic Autopilot is expanding.</p>");
+    form.set("category", "models");
+
+    expect(parsePublishCandidateForm(form)).toMatchObject({
+      title: "Scout from M'Soft",
+      summary: "Microsoft's agentic Autopilot is expanding."
+    });
+  });
 });
