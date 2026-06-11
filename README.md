@@ -90,4 +90,4 @@ GET /api/cron/fetch
 Authorization: Bearer <CRON_SECRET>
 ```
 
-Vercel will call it every eight hours.
+Vercel will call it once per day.
